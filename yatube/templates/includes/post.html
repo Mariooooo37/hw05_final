@@ -1,0 +1,16 @@
+{% load thumbnail %}
+<article class="col-12 col-md-9">
+  <ul>
+    <li>
+      Автор: {{ post.author.get_full_name }}
+      <a href="{% url 'posts:profile' post.author %}">все посты пользователя</a>
+    </li>
+    <li>
+      Дата публикации: {{ post.pub_date|date:'d E Y' }}
+    </li>
+  </ul>
+  {% thumbnail post.image "480x170" crop="center" upscale=True as im %}
+    <img class="card-img my-2" src="{{ im.url }}">
+  {% endthumbnail %}
+  <p>{{ post.text|truncatewords:73 }}</p>
+</article>
