@@ -1,5 +1,6 @@
 from django.db import models
 from core.models import CreatedModel
+from django.db.models import UniqueConstraint
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -53,7 +54,9 @@ class Comment(CreatedModel):
         on_delete=models.CASCADE,
         verbose_name='Пост'
     )
-    text = models.TextField(verbose_name='Добавить комментарий:')
+    text = models.TextField(
+        verbose_name='Добавить комментарий:',
+        help_text='Текст нового комментария')
 
     class Meta:
         ordering = ['-pub_date']
@@ -76,3 +79,8 @@ class Follow(models.Model):
         on_delete=models.CASCADE,
         related_name='following',
     )
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['user', 'author'], name='unique_follow')
+        ]

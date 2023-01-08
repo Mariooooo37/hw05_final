@@ -22,6 +22,7 @@ VERBOSE_NAME_COMMENT_CREATED = 'Дата создания'
 HELP_TEXT_TEXT = 'Текст нового поста'
 HELP_TEXT_GROUP = 'Группа, к которой будет относиться пост'
 HELP_TEXT_IMAGE = 'Ваша картинка'
+HELP_TEXT_COMMENT_TEXT = 'Текст нового комментария'
 
 
 class PostModelTest(TestCase):
@@ -114,3 +115,8 @@ class PostModelTest(TestCase):
         for get_verbose, verbose in get_verboses_verbose.items():
             with self.subTest(verbose=verbose):
                 self.assertEqual(get_verbose, verbose)
+
+    def test_help_text(self):
+        """Проверяем, что help_text модели Comment совпадает с ожидаемым."""
+        field_text = self.comment._meta.get_field('text').help_text
+        self.assertEqual(field_text, HELP_TEXT_COMMENT_TEXT)

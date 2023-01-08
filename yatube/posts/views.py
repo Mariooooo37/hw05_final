@@ -7,10 +7,11 @@ from django.views.decorators.cache import cache_page
 from .utils import paginator
 
 User = get_user_model()
-SEK_IN_CACHE = 20
+SECONDS_IN_CACHE = 20
+# Извиняюсь, это я так криво сократил SECONDS)
 
 
-@cache_page(SEK_IN_CACHE, key_prefix='index_page')
+@cache_page(SECONDS_IN_CACHE, key_prefix='index_page')
 def index(request):
     title = 'Последние обновления на сайте'
     post_list = Post.objects.select_related('group', 'author')
@@ -88,22 +89,31 @@ def add_comment(request, post_id):
     post = get_object_or_404(Post.objects.select_related('group', 'author'),
                              id=post_id)
     form = CommentForm(request.POST or None)
-    if form.is_valid():
-        comment = form.save(commit=False)
-        comment.author = request.user
-        comment.post = post
-        comment.save()
-        return redirect('posts:post_detail', post_id)
-    return redirect('posts:post_detail', post_id=post_id)
+    if not form.is_valid():
+        return redirect('posts:post_detail', post_id=post_id)
+    comment = form.save(commit=False)
+    comment.author = request.user
+    comment.post = post
+    comment.save()
+    return redirect('posts:post_detail', post_id)
 
 
 @login_required
 def follow_index(request):
-    posts = Post.objects.filter(author__following__user=request.user)
-    # Привет! Потратил кучу времени на фильтр на предыдущей строке,
-    # по итогу нашел на оферфлоу похожий вопрос и сделал по наитию)
-    # Так до конца и не понял, почему так и как оно работает, в теории не было
-    # Можешь раскрыть эту тему, или направить, где можно почитать о таком?
+    posts = Post.objects.filter(
+        author__following__user=request.user).select_related('author', 'group')
+    # Приделал сюда еще select_related для оптимизации запросов. Но я все равно
+    # не совсем понимаю, как работает фильтр author__following__user=...
+    # Ну точнее понимаю так, что ORM перебирает все посты по одному, т.е.
+    # берет каждый пост, по FK поля author получает объект User, из этого
+    # объекта по обратной связи following получает объект модели Follow, в этом
+    # объекте по FK получает объект поля User и сравнивает его с request.user
+    #
+    # Я пытался сделать так еще, по идее меньше нагрузки на БД: из модели
+    # Follow получаем объекты, где поле user=request.user из этих объектов
+    # получаем список значений поля author, далее выводим все посты, фильтруя
+    # то, что значение поля author модели Post есть в списке подписанных
+    # авторов, что-то типо Post.objects.filter(author__in = [authors])
     return render(
         request, 'posts/follow.html',
         {'posts': posts,
@@ -114,10 +124,8 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
-    following_author_users = Follow.objects.filter(
-        user=request.user, author=author)
-    if request.user != author and following_author_users.count() == 0:
-        Follow.objects.create(
+    if request.user != author:
+        Follow.objects.get_or_create(
             user=request.user,
             author=author,
         )
@@ -127,9 +135,5 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     following_author = get_object_or_404(User, username=username)
-    follow = Follow.objects.filter(
-        user=request.user,
-        author=following_author,
-    )
-    follow.delete()
+    Follow.objects.filter(user=request.user, author=following_author).delete()
     return redirect('posts:profile', username)

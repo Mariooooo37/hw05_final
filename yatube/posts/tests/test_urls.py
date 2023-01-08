@@ -37,6 +37,7 @@ class PostsURLTEST(TestCase):
             '/group/test_slug/': 'posts/group_list.html',
             '/create/': 'posts/create_post.html',
             '/unexisting_page/': 'core/404.html',
+            '/follow/': 'posts/follow.html'
         }
 
     def test_urls_status_code_quest_user(self):

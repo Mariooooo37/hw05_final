@@ -4,7 +4,6 @@
 {% endblock title %}
 {% block content %}
 {% load cache %}
-{% cache 20 index_page %}
 <div class="container py-0">
   <h1>Посты авторов, на которых есть подписка</h1>
   <article>
@@ -20,5 +19,4 @@
     {% include 'posts/includes/paginator.html' %}
   </article>
 </div>
-{% endcache %}
 {% endblock content %}
