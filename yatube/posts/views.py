@@ -109,11 +109,14 @@ def follow_index(request):
     # объекта по обратной связи following получает объект модели Follow, в этом
     # объекте по FK получает объект поля User и сравнивает его с request.user
     #
-    # Я пытался сделать так еще, по идее меньше нагрузки на БД: из модели
-    # Follow получаем объекты, где поле user=request.user из этих объектов
-    # получаем список значений поля author, далее выводим все посты, фильтруя
-    # то, что значение поля author модели Post есть в списке подписанных
-    # авторов, что-то типо Post.objects.filter(author__in = [authors])
+    # Еще я обдумал такой вариант, по идее меньше нагрузки на БД, т.к. постов
+    # у нас всегда будет больше, чем подписанных авторов. Но я не уверен
+    # И выглядит не так красиво):
+    # follow_obj = Follow.objects.filter(user_id=request.user.id)
+    # following_list = []
+    # for follow in follow_obj:
+    #    following_list.append(follow.author_id)
+    # posts = Post.objects.filter(author_id__in=following_list)
     return render(
         request, 'posts/follow.html',
         {'posts': posts,
