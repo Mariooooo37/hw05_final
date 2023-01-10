@@ -8,7 +8,6 @@ from .utils import paginator
 
 User = get_user_model()
 SECONDS_IN_CACHE = 20
-# Извиняюсь, это я так криво сократил SECONDS)
 
 
 @cache_page(SECONDS_IN_CACHE, key_prefix='index_page')
@@ -102,21 +101,6 @@ def add_comment(request, post_id):
 def follow_index(request):
     posts = Post.objects.filter(
         author__following__user=request.user).select_related('author', 'group')
-    # Приделал сюда еще select_related для оптимизации запросов. Но я все равно
-    # не совсем понимаю, как работает фильтр author__following__user=...
-    # Ну точнее понимаю так, что ORM перебирает все посты по одному, т.е.
-    # берет каждый пост, по FK поля author получает объект User, из этого
-    # объекта по обратной связи following получает объект модели Follow, в этом
-    # объекте по FK получает объект поля User и сравнивает его с request.user
-    #
-    # Еще я обдумал такой вариант, по идее меньше нагрузки на БД, т.к. постов
-    # у нас всегда будет больше, чем подписанных авторов. Но я не уверен
-    # И выглядит не так красиво):
-    # follow_obj = Follow.objects.filter(user_id=request.user.id)
-    # following_list = []
-    # for follow in follow_obj:
-    #    following_list.append(follow.author_id)
-    # posts = Post.objects.filter(author_id__in=following_list)
     return render(
         request, 'posts/follow.html',
         {'posts': posts,
