@@ -34,6 +34,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '[::1]',
     'testserver',
+    'www.mariooooo37.pythonanywhere.com',
+    'mariooooo37.pythonanywhere.com',
 ]
 
 CACHES = {
